@@ -150,7 +150,7 @@ router.get("/tasks", authenticate, async (req, res) => {
     // Log tasks after filtering
     console.log("Current tasks:", currentTasks);
 
-    res.status(200).json({ tasks: currentTasks });
+    res.status(200).json({ tasks: currentTasks, email: req.rootUser.email });
   } catch (error) {
     console.error("Error fetching tasks:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -206,6 +206,63 @@ router.put("/addStartTime/:taskId", authenticate, async (req, res) => {
     res.status(200).json({ message: "Start time added successfully" });
   } catch (error) {
     console.error("Error adding start time:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+router.post("/updateStopTime", authenticate, async (req, res) => {
+  try {
+    const { taskId, stopTime } = req.body;
+
+    const user = req.rootUser;
+
+    // Find the task by taskId in the user's tasks array
+    const taskIndex = user.Tasks.findIndex(
+      (task) => task._id.toString() === taskId
+    );
+
+    if (taskIndex === -1) {
+      return res.status(404).json({ error: "Task not found" });
+    }
+
+    // Update the stopTime of the task
+    user.Tasks[taskIndex].EndTime = stopTime;
+
+    // Save the updated user document
+    await user.save();
+
+    res.status(200).json({ message: "Stop Time updated successfully" });
+  } catch (error) {
+    console.error("Error updating stopTime:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// Change from router.post to router.put
+router.put("/updateStopTime", authenticate, async (req, res) => {
+  try {
+    const { taskId, stopTime } = req.body;
+
+    const user = await User.findById(req.userID);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const taskToUpdate = user.Tasks.id(taskId);
+
+    if (!taskToUpdate) {
+      return res.status(404).json({ error: "Task not found" });
+    }
+
+    taskToUpdate.endTime = stopTime;
+
+    await user.save();
+
+    // Return the updated task or any other data you need
+    res.status(200).json({ stopTime: taskToUpdate.endTime });
+  } catch (error) {
+    console.error("Error updating stopTime:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });

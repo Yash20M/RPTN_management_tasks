@@ -94,12 +94,12 @@ const Task = () => {
     await addStartTimeToBackend(taskId);
   };
 
-  const handleStopTime = (index) => {
-    const now = new Date();
-    const formattedTime = now.toLocaleTimeString();
+  // const handleStopTime = (index) => {
+  //   const now = new Date();
+  //   const formattedTime = now.toLocaleTimeString();
 
-    handleTimeUpdate(index, tasks[index].startTime, formattedTime);
-  };
+  //   handleTimeUpdate(index, tasks[index].startTime, formattedTime);
+  // };
 
   const handleTimeUpdate = (index, startTime, stopTime) => {
     const difference = calculateTimeDifference(startTime, stopTime);
@@ -109,6 +109,55 @@ const Task = () => {
         i === index ? { ...task, stopTime, difference } : task
       )
     );
+  };
+
+  const handleStopTime = async (index) => {
+    try {
+      const now = new Date();
+      const formattedTime = now.toLocaleTimeString();
+
+      // Assuming you have taskId stored in tasks array for each task
+      const taskId = tasks[index]._id;
+
+      // Make a POST request to update stopTime in the backend
+      const res = await fetch("/api/updateStopTime", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          taskId,
+          stopTime: formattedTime,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error(res.error);
+      }
+
+      alert("Stop Time updated successfully!");
+
+      // Update the state of tasks with the received data
+      const updatedData = await res.json();
+      // setTasks((prevTasks) =>
+      //   prevTasks.map((task, i) =>
+      //     i === index ? { ...task, stopTime: updatedData.stopTime } : task
+      //   )
+      // );
+      setTasks((prevTasks) =>
+        prevTasks.map((task, i) =>
+          i === index ? { ...task, stopTime: updatedData.stopTime } : task
+        )
+      );
+      handleTimeUpdate(index, tasks[index].startTime, formattedTime);
+
+      // Refresh tasks from the backend if needed
+      TaskPage();
+    } catch (error) {
+      console.error("Error updating stopTime:", error);
+    }
   };
 
   const calculateTimeDifference = (startTime, stopTime) => {
@@ -210,7 +259,11 @@ const Task = () => {
       const data = await res.json();
       console.log("Received data:", data); // Log received data
       setTasks(data.tasks);
+      setUserEmail(data.email);
+      setTasks(data.tasks);
+      setTotalTime(data.totalTime);
       calculateTotalTime();
+      console.log();
     } catch (error) {
       console.error("Error fetching tasks:", error);
       navigate("/login");
@@ -270,9 +323,9 @@ const Task = () => {
               </button>
             </form>
 
-            {notification && <div className="notification">{notification}</div>}
+            {/* {notification && <div className="notification">{notification}</div>} */}
 
-            <ol className="listMapped_ordered">
+            {/* <ol className="listMapped_ordered">
               {Array.isArray(tasks) &&
                 tasks.map((task, index) => (
                   <li key={index} className="listMapped">
@@ -308,9 +361,68 @@ const Task = () => {
                       </div>
                       {task.stopTime && (
                         <div>
+                          
                           <input
                             type="text"
                             value={task.stopTime}
+                            readOnly
+                            name="endTime"
+                            className="totl-tim-inp"
+                          />
+                        </div>
+                      )}
+                      <div>
+                        <input
+                          type="text"
+                          value={task.difference}
+                          readOnly
+                          className="totl-tim-inp"
+                        />
+                      </div>
+                    </div>
+                  </li>
+                ))}
+            </ol> */}
+
+            <ol className="listMapped_ordered">
+              {Array.isArray(tasks) &&
+                tasks.map((task, index) => (
+                  <li key={index} className="listMapped">
+                    <div className="task">{task.task}</div>
+                    <div className="btn-div">
+                      <button
+                        onClick={() => handleStartTime(index, task._id)}
+                        disabled={task.startTime}
+                        className="start-btn"
+                      >
+                        Start
+                      </button>
+                      <button
+                        onClick={() => handleStopTime(index)}
+                        disabled={!task.EndTime || task.EndTime !== "0"}
+                        className="stop-btn"
+                      >
+                        Stop
+                      </button>
+
+                      <div className="main-time-diff">Time Difference:</div>
+                    </div>
+
+                    <div className="strt-time">
+                      <div>
+                        <input
+                          type="text"
+                          value={task.startTime || "Not started"}
+                          readOnly
+                          name="startTime"
+                          className="totl-tim-inp"
+                        />
+                      </div>
+                      {task.EndTime && (
+                        <div>
+                          <input
+                            type="text"
+                            value={task.EndTime}
                             readOnly
                             name="endTime"
                             className="totl-tim-inp"
