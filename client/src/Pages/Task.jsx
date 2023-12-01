@@ -14,6 +14,7 @@ const Task = () => {
   const [notification, setNotification] = useState(null);
   const navigate = useNavigate();
   const [userEmail, setUserEmail] = useState("");
+  const [tokens, setTokens] = useState([]);
 
   const addTaskToBackend = async (task) => {
     try {
@@ -41,6 +42,30 @@ const Task = () => {
       console.error("Error adding task:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleEndDay = async () => {
+    try {
+      const res = await fetch("/api/endDay", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+        throw new Error(res.error);
+      }
+
+      toast.success("Total time calculated successfully!");
+
+      // Refresh tasks from the backend if needed
+      TaskPage();
+    } catch (error) {
+      console.error("Error ending day:", error);
     }
   };
 
@@ -169,32 +194,32 @@ const Task = () => {
     return "";
   };
 
-  const calculateTotalTime = () => {
-    if (!Array.isArray(tasks)) {
-      // If tasks is not an array, set total time to an empty string or handle it accordingly
-      setTotalTime("");
-      return;
-    }
+  // const calculateTotalTime = () => {
+  //   if (!Array.isArray(tasks)) {
+  //     // If tasks is not an array, set total time to an empty string or handle it accordingly
+  //     setTotalTime("");
+  //     return;
+  //   }
 
-    let totalMilliseconds = 0;
+  //   let totalMilliseconds = 0;
 
-    tasks.forEach((task) => {
-      if (task.difference) {
-        const [hours, minutes, seconds] = task.difference
-          .split(" ")
-          .map((value) => parseInt(value));
+  //   tasks.forEach((task) => {
+  //     if (task.difference) {
+  //       const [hours, minutes, seconds] = task.difference
+  //         .split(" ")
+  //         .map((value) => parseInt(value));
 
-        totalMilliseconds += hours * 3600000 + minutes * 60000 + seconds * 1000;
-      }
-    });
+  //       totalMilliseconds += hours * 3600000 + minutes * 60000 + seconds * 1000;
+  //     }
+  //   });
 
-    const totalDate = new Date(totalMilliseconds);
-    const totalHours = totalDate.getUTCHours();
-    const totalMinutes = totalDate.getUTCMinutes();
-    const totalSeconds = totalDate.getUTCSeconds();
+  //   const totalDate = new Date(totalMilliseconds);
+  //   const totalHours = totalDate.getUTCHours();
+  //   const totalMinutes = totalDate.getUTCMinutes();
+  //   const totalSeconds = totalDate.getUTCSeconds();
 
-    setTotalTime(`${totalHours}h ${totalMinutes}m ${totalSeconds}s`);
-  };
+  //   setTotalTime(`${totalHours}h ${totalMinutes}m ${totalSeconds}s`);
+  // };
 
   // const TaskPage = async () => {
   //   try {
@@ -255,17 +280,67 @@ const Task = () => {
       setUserEmail(data.email);
       setTasks(data.tasks);
       setTotalTime(data.totalTime);
-      calculateTotalTime();
-      console.log();
+      // calculateTotalTime();
+      calculateTotalTime(data.tasks, data.totalHours);
+      // console.log(data.totalTime, "tejbd");
+      // console.log(data.totalTime);
     } catch (error) {
       console.error("Error fetching tasks:", error);
       navigate("/login");
     }
   };
 
+  const calculateTotalTime = (tasksArray, totalHoursArray) => {
+    let totalMilliseconds = 0;
+
+    tasksArray.forEach((task) => {
+      if (task.difference) {
+        const [hours, minutes, seconds] = task.difference
+          .split(" ")
+          .map((value) => parseInt(value));
+
+        totalMilliseconds += hours * 3600000 + minutes * 60000 + seconds * 1000;
+      }
+    });
+
+    const totalDate = new Date(totalMilliseconds);
+    const totalHours = totalDate.getUTCHours();
+    const totalMinutes = totalDate.getUTCMinutes();
+    const totalSeconds = totalDate.getUTCSeconds();
+
+    // Check if today's date matches any entry in totalHoursArray
+  };
+
   useEffect(() => {
     TaskPage();
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      // Make a request to your server to clear tokens
+      const res = await fetch("/api/logout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+        throw new Error(res.error);
+      }
+
+      // Clear tokens in the frontend state
+      setTokens([]);
+
+      // Redirect to the login page or any other page
+      navigate("/login");
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
+  };
+
   return (
     <>
       <ToastContainer />
@@ -278,7 +353,11 @@ const Task = () => {
             <p>{userEmail}</p>
 
             <div className="log-btn">
-              <button className="button" style={{ marginTop: 0 }}>
+              <button
+                className="button"
+                style={{ marginTop: 0 }}
+                onClick={handleLogout}
+              >
                 Logout
               </button>
             </div>

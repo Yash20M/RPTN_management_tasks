@@ -40,16 +40,14 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: "",
       },
-      TotalHours: {
-        type: Number,
-        default: 0,
-      },
+
       createdAt: {
         type: Date,
         default: new Date(),
       },
     },
   ],
+  
   tokens: [
     {
       token: {
@@ -62,6 +60,7 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: Date.now, // Set a default value to the current date and time
   },
+  totalHours: [{ date: Date, hours: String }],
 });
 
 // hashing the password

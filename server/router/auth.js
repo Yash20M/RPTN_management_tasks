@@ -86,7 +86,7 @@ router.get("/tasks", authenticate, async (req, res) => {
     }
 
     // Log all tasks for debugging
-    console.log("All tasks:", user.Tasks);
+    // console.log("All tasks:", user.Tasks);
 
     // Ensure that createdAt is logged correctly
     user.Tasks.forEach((task) => {
@@ -103,10 +103,39 @@ router.get("/tasks", authenticate, async (req, res) => {
       );
     });
 
+    const totalMilliseconds = currentTasks.reduce((total, task) => {
+      if (task.timeDifference) {
+        const [hours, minutes, seconds] = task.timeDifference
+          .split(" ")
+          .map((value) => parseInt(value));
+
+        total += hours * 3600000 + minutes * 60000 + seconds * 1000;
+      }
+      return total;
+    }, 0);
+
+    const totalDate = new Date(totalMilliseconds);
+    const totalHours = totalDate.getUTCHours();
+    const totalMinutes = totalDate.getUTCMinutes();
+    const totalSeconds = totalDate.getUTCSeconds();
+
+    const totalTime = `${totalHours}h ${totalMinutes}m ${totalSeconds}s`;
+
+    user.totalTime = totalTime;
+    await user.save();
+
+    console.log(totalTime, "totla time");
     // Log tasks after filtering
     console.log("Current tasks:", currentTasks);
 
-    res.status(200).json({ tasks: currentTasks, email: req.rootUser.email });
+    res
+      .status(200)
+      .json({
+        tasks: currentTasks,
+        email: req.rootUser.email,
+        totalTime,
+        tokens: req.rootUser.tokens,
+      });
   } catch (error) {
     console.error("Error fetching tasks:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -122,9 +151,39 @@ router.post("/addTask", authenticate, async (req, res) => {
       task,
       startTime: "", // Add default values if needed
       endTime: "",
-      totalHours: 0,
       timeDifference: "",
       createdAt: new Date(),
+    });
+
+    const currentDate = new Date().toLocaleDateString();
+    const currentTasks = req.rootUser.Tasks.filter(
+      (task) =>
+        task.createdAt && task.createdAt.toLocaleDateString() === currentDate
+    );
+
+    const totalMilliseconds = currentTasks.reduce((total, task) => {
+      if (task.timeDifference) {
+        const [hours, minutes, seconds] = task.timeDifference
+          .split(" ")
+          .map((value) => parseInt(value));
+
+        total += hours * 3600000 + minutes * 60000 + seconds * 1000;
+      }
+      return total;
+    }, 0);
+
+    const totalDate = new Date(totalMilliseconds);
+    const totalHours = totalDate.getUTCHours();
+    const totalMinutes = totalDate.getUTCMinutes();
+    const totalSeconds = totalDate.getUTCSeconds();
+
+    // Convert total hours, minutes, and seconds to a formatted string
+    const formattedTotalTime = `${totalHours}h ${totalMinutes}m ${totalSeconds}s`;
+
+    // Save the total time for the current day in the user's totalHours array
+    req.rootUser.totalHours.push({
+      date: new Date().toLocaleDateString(),
+      hours: formattedTotalTime,
     });
 
     // Save the user with the updated tasks array
@@ -242,4 +301,18 @@ const calculateTimeDifference = (startTime, stopTime) => {
   return `${hours}h ${minutes}m ${seconds}s`;
 };
 
+router.post("/logout", async (req, res) => {
+  try {
+    // Clear the tokens associated with the user
+    req.rootUser.tokens = [];
+    await req.rootUser.save();
+
+    res.clearCookie("jwttoken"); // Clear the JWT token from the cookie
+
+    res.status(200).json({ message: "Logout successful" });
+  } catch (error) {
+    console.error("Error during logout:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 module.exports = router;
