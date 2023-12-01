@@ -94,13 +94,6 @@ const Task = () => {
     await addStartTimeToBackend(taskId);
   };
 
-  // const handleStopTime = (index) => {
-  //   const now = new Date();
-  //   const formattedTime = now.toLocaleTimeString();
-
-  //   handleTimeUpdate(index, tasks[index].startTime, formattedTime);
-  // };
-
   const handleTimeUpdate = (index, startTime, stopTime) => {
     const difference = calculateTimeDifference(startTime, stopTime);
 
@@ -323,67 +316,6 @@ const Task = () => {
               </button>
             </form>
 
-            {/* {notification && <div className="notification">{notification}</div>} */}
-
-            {/* <ol className="listMapped_ordered">
-              {Array.isArray(tasks) &&
-                tasks.map((task, index) => (
-                  <li key={index} className="listMapped">
-                    <div className="task">{task.task}</div>
-                    <div className="btn-div">
-                      <button
-                        onClick={() => handleStartTime(index, task._id)}
-                        disabled={task.startTime}
-                        className="start-btn"
-                      >
-                        Start
-                      </button>
-                      <button
-                        onClick={() => handleStopTime(index)}
-                        disabled={task.stopTime}
-                        className="stop-btn"
-                      >
-                        Stop
-                      </button>
-
-                      <div className="main-time-diff">Time Difference:</div>
-                    </div>
-
-                    <div className="strt-time">
-                      <div>
-                        <input
-                          type="text"
-                          value={task.startTime || "Not started"}
-                          readOnly
-                          name="startTime"
-                          className="totl-tim-inp"
-                        />
-                      </div>
-                      {task.stopTime && (
-                        <div>
-                          
-                          <input
-                            type="text"
-                            value={task.stopTime}
-                            readOnly
-                            name="endTime"
-                            className="totl-tim-inp"
-                          />
-                        </div>
-                      )}
-                      <div>
-                        <input
-                          type="text"
-                          value={task.difference}
-                          readOnly
-                          className="totl-tim-inp"
-                        />
-                      </div>
-                    </div>
-                  </li>
-                ))}
-            </ol> */}
-
             <ol className="listMapped_ordered">
               {Array.isArray(tasks) &&
                 tasks.map((task, index) => (
@@ -432,7 +364,7 @@ const Task = () => {
                       <div>
                         <input
                           type="text"
-                          value={task.difference}
+                          value={task.timeDifference}
                           readOnly
                           className="totl-tim-inp"
                         />

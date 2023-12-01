@@ -36,6 +36,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: 0,
       },
+      timeDifference: {
+        type: String,
+        default: "",
+      },
       TotalHours: {
         type: Number,
         default: 0,
