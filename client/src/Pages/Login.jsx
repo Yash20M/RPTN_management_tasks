@@ -49,7 +49,7 @@ const Login = () => {
         <div className="login_box">
           <div className="login_right">
             <h1>Login</h1>
-            <form method="POST">
+            <form method="POST" className="login_formm">
               <div className="form__group field">
                 <input
                   type="text"

@@ -128,14 +128,12 @@ router.get("/tasks", authenticate, async (req, res) => {
     // Log tasks after filtering
     console.log("Current tasks:", currentTasks);
 
-    res
-      .status(200)
-      .json({
-        tasks: currentTasks,
-        email: req.rootUser.email,
-        totalTime,
-        tokens: req.rootUser.tokens,
-      });
+    res.status(200).json({
+      tasks: currentTasks,
+      email: req.rootUser.email,
+      totalTime,
+      tokens: req.rootUser.tokens,
+    });
   } catch (error) {
     console.error("Error fetching tasks:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -301,18 +299,9 @@ const calculateTimeDifference = (startTime, stopTime) => {
   return `${hours}h ${minutes}m ${seconds}s`;
 };
 
-router.post("/logout", async (req, res) => {
-  try {
-    // Clear the tokens associated with the user
-    req.rootUser.tokens = [];
-    await req.rootUser.save();
-
-    res.clearCookie("jwttoken"); // Clear the JWT token from the cookie
-
-    res.status(200).json({ message: "Logout successful" });
-  } catch (error) {
-    console.error("Error during logout:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
+router.get("/logout", async (req, res) => {
+  console.log("Cookie are clearing");
+  res.clearCookie("jwttoken", { path: "/" });
+  res.status(200).send("USer logged out")
 });
 module.exports = router;

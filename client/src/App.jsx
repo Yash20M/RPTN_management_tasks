@@ -5,14 +5,16 @@ import Task from "./Pages/Task";
 
 import LoginPage from "./Pages/Login";
 import Register from "./Pages/Register";
+import Logout from "./Pages/Logout";
 
 const App = () => {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/" element={<Register />} />
         <Route path="/task" element={<Task />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/" element={<Register />} />
+        <Route path="/logout" element={<Logout />} />
       </Routes>
     </BrowserRouter>
   );

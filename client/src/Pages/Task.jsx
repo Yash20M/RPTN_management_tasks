@@ -1,6 +1,6 @@
 // Task.jsx
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./Styles/Task.css";
@@ -42,30 +42,6 @@ const Task = () => {
       console.error("Error adding task:", error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleEndDay = async () => {
-    try {
-      const res = await fetch("/api/endDay", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        credentials: "include",
-      });
-
-      if (!res.ok) {
-        throw new Error(res.error);
-      }
-
-      toast.success("Total time calculated successfully!");
-
-      // Refresh tasks from the backend if needed
-      TaskPage();
-    } catch (error) {
-      console.error("Error ending day:", error);
     }
   };
 
@@ -159,11 +135,7 @@ const Task = () => {
 
       // Update the state of tasks with the received data
       const updatedData = await res.json();
-      // setTasks((prevTasks) =>
-      //   prevTasks.map((task, i) =>
-      //     i === index ? { ...task, stopTime: updatedData.stopTime } : task
-      //   )
-      // );
+
       setTasks((prevTasks) =>
         prevTasks.map((task, i) =>
           i === index ? { ...task, stopTime: updatedData.stopTime } : task
@@ -193,65 +165,6 @@ const Task = () => {
 
     return "";
   };
-
-  // const calculateTotalTime = () => {
-  //   if (!Array.isArray(tasks)) {
-  //     // If tasks is not an array, set total time to an empty string or handle it accordingly
-  //     setTotalTime("");
-  //     return;
-  //   }
-
-  //   let totalMilliseconds = 0;
-
-  //   tasks.forEach((task) => {
-  //     if (task.difference) {
-  //       const [hours, minutes, seconds] = task.difference
-  //         .split(" ")
-  //         .map((value) => parseInt(value));
-
-  //       totalMilliseconds += hours * 3600000 + minutes * 60000 + seconds * 1000;
-  //     }
-  //   });
-
-  //   const totalDate = new Date(totalMilliseconds);
-  //   const totalHours = totalDate.getUTCHours();
-  //   const totalMinutes = totalDate.getUTCMinutes();
-  //   const totalSeconds = totalDate.getUTCSeconds();
-
-  //   setTotalTime(`${totalHours}h ${totalMinutes}m ${totalSeconds}s`);
-  // };
-
-  // const TaskPage = async () => {
-  //   try {
-  //     const res = await fetch("/api/tasks", {
-  //       method: "GET",
-  //       headers: {
-  //         Accept: "application/json",
-  //         "Content-Type": "application/json",
-  //       },
-  //       credentials: "include",
-  //     });
-
-  //     if (res.status === 401) {
-  //       navigate("/login");
-  //       return;
-  //     }
-
-  //     if (!res.ok) {
-  //       throw new Error(res.error);
-  //     }
-
-  //     const data = await res.json();
-  //     setTasks(data.tasks);
-  //     calculateTotalTime();
-  //     setUserEmail(data.email);
-  //     setTasks(data.tasks);
-  //     calculateTotalTime();
-  //   } catch (error) {
-  //     console.error("Error fetching data:", error);
-  //     navigate("/login");
-  //   }
-  // };
 
   const TaskPage = async () => {
     try {
@@ -315,32 +228,6 @@ const Task = () => {
     TaskPage();
   }, []);
 
-  const handleLogout = async () => {
-    try {
-      // Make a request to your server to clear tokens
-      const res = await fetch("/api/logout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        credentials: "include",
-      });
-
-      if (!res.ok) {
-        throw new Error(res.error);
-      }
-
-      // Clear tokens in the frontend state
-      setTokens([]);
-
-      // Redirect to the login page or any other page
-      navigate("/login");
-    } catch (error) {
-      console.error("Error logging out:", error);
-    }
-  };
-
   return (
     <>
       <ToastContainer />
@@ -353,13 +240,11 @@ const Task = () => {
             <p>{userEmail}</p>
 
             <div className="log-btn">
-              <button
-                className="button"
-                style={{ marginTop: 0 }}
-                onClick={handleLogout}
-              >
-                Logout
-              </button>
+              <NavLink to="/logout">
+                <button className="button" style={{ marginTop: 0 }}>
+                  Logout
+                </button>
+              </NavLink>
             </div>
           </div>
         </div>
@@ -400,27 +285,18 @@ const Task = () => {
                 tasks.map((task, index) => (
                   <li key={index} className="listMapped">
                     <div className="task">{task.task}</div>
-                    <div className="btn-div">
-                      <button
-                        onClick={() => handleStartTime(index, task._id)}
-                        disabled={task.startTime}
-                        className="start-btn"
-                      >
-                        Start
-                      </button>
-                      <button
-                        onClick={() => handleStopTime(index)}
-                        disabled={!task.EndTime || task.EndTime !== "0"}
-                        className="stop-btn"
-                      >
-                        Stop
-                      </button>
+                    <div className="btn-div-Wrapper">
+                      <div className="btn-div">
+                        <button
+                          onClick={() => handleStartTime(index, task._id)}
+                          disabled={task.startTime}
+                          className={`start-btn timeBTN ${
+                            task.startTime ? "disabled" : ""
+                          }`}
+                        >
+                          Start
+                        </button>
 
-                      <div className="main-time-diff">Time Difference:</div>
-                    </div>
-
-                    <div className="strt-time">
-                      <div>
                         <input
                           type="text"
                           value={task.startTime || "Not started"}
@@ -429,18 +305,36 @@ const Task = () => {
                           className="totl-tim-inp"
                         />
                       </div>
-                      {task.EndTime && (
-                        <div>
-                          <input
-                            type="text"
-                            value={task.EndTime}
-                            readOnly
-                            name="endTime"
-                            className="totl-tim-inp"
-                          />
-                        </div>
-                      )}
-                      <div>
+
+                      <div className="btn-div">
+                        <button
+                          onClick={() => handleStopTime(index)}
+                          disabled={!task.EndTime || task.EndTime !== "0"}
+                          className={`stop-btn timeBTN ${
+                            !task.EndTime || task.EndTime !== "0"
+                              ? "disabled"
+                              : ""
+                          }`}
+                        >
+                          Stop
+                        </button>
+
+                        {task.EndTime && (
+                          <div>
+                            <input
+                              type="text"
+                              value={task.EndTime}
+                              readOnly
+                              name="endTime"
+                              className="totl-tim-inp"
+                            />
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="btn-div" style={{ border: "none" }}>
+                        <div className="main-time-diff">Time Difference:</div>
+
                         <input
                           type="text"
                           value={task.timeDifference}
